@@ -15,10 +15,9 @@ def ergebnissPage(df):
     tableWindow.bind("<Motion>", callback)
 
     setStyle(tableWindow)
-    expandFullWindowSize(tableWindow)
 
+    table = Table(tableWindow, df)
 
-    createTable(tableWindow, df)
     createTableExtraData(tableWindow, df)
 
 def callback(event):
@@ -29,171 +28,229 @@ def callback(event):
 def setStyle(window):
     style = ThemedStyle(window)
     style.set_theme("clearlooks")
+    style.configure("Treeview",
+                    background="lightgrey",
+                    fieldbackground="lightgrey")
 
 def expandFullWindowSize(window):
     window.grid_rowconfigure(0, weight=1)
     window.grid_columnconfigure(0, weight=1)
 
+class Table:
+    def __init__(self, root, df):
 
-def createTable(window, df):
-    global table
+        self.sortierungsPrioList = []
 
-    frame = ttk.Frame(window)
+        columnsList = list(df.columns)
+        self.table = ttk.Treeview(root, column=tuple(columnsList))
+        self.table["show"] = "headings"
+        self.table.bind("<Double-1>", self.openTableLink)
 
-    columnsList = list(df.columns)
-    table = ttk.Treeview(window, column=tuple(columnsList))
-    table["show"] = "headings"
-    table.bind("<Double-1>", openTableLink)
+        self.fillTableHead(columnsList)
+        self.fillTableBody(df)
 
-    fillTableHead(columnsList)
-    fillTableBody(df)
+        self.table.pack(fill = "both" ,expand=True)
 
-    table.pack(expand=True, fill = "both")
+    def openTableLink(self,selection):
+        selectionID = self.table.selection()
+        inputItem = self.table.item(selectionID)['values'][9]#Links
 
-    frame.pack()
-
-def openTableLink(selection):
-    selectionID = table.selection()
-    inputItem = table.item(selectionID)['values'][9]#Links
-
-    import webbrowser
-    webbrowser.open('{}'.format(inputItem))
-
-def fillTableHead(cols):
-    for index, col in enumerate(cols):
-        columnWidth = getTableColumnWidt(col)
-        table.heading(col, text=col, anchor='w', command=lambda _col=col: popupWindowTable(table, _col))
-        table.column(col, anchor="w", width=columnWidth)
-
-def getTableColumnWidt(col):
-    if col == "Titel"or col== "Bewertung":
-        return 220
-    elif col == "Art":
-        return 100
-    elif col == "Extras":
-        return 150
-    elif col == "Gäste" or col == "Bemerkung" :
-        return 70
-    elif col == "Link":
-        return 170
-    else:
-        return 50
-
-def popupWindowTable(table, col):
-    global mousePosX, mousePosY, popupWindow
-    popupWindow  = tk.Tk()
-    popupWindow.title(col)
-
-    setStyle(popupWindow)
-
-    popupFrame = ttk.Frame(popupWindow)
-
-    buttonSortierungAZ = ttk.Button(popupFrame,
-                            text= "Sort A-Z",
-                            command= lambda: buttonTableSortColumn(col, False))
-    buttonSortierungAZ.pack()
-
-    buttonSortierungZA = ttk.Button(popupFrame,
-                            text= "Sort Z-A",
-                            command= lambda: buttonTableSortColumn(col, True))
-    buttonSortierungZA.pack()
-
-    buttonFilter = ttk.Button(popupFrame,
-                            text= "Filter",
-                            command= lambda: tabelFilterColumn(col))
-    buttonFilter.pack()
-
-    buttonReset = ttk.Button(popupFrame,
-                            text= "reset",
-                            command= lambda: buttonTableResetColumn(col))
-    buttonReset.pack()
+        import webbrowser
+        webbrowser.open('{}'.format(inputItem))
 
 
-    popupFrame.pack()
+    def fillTableHead(self,cols):
+        for index, col in enumerate(cols):
+            columnWidth = self.getTableColumnWidt(col)
+            self.table.heading(col, text=col, anchor='w', command=lambda _col=col: self.popupWindowTable(_col))
+            self.table.column(col, anchor="w", width=columnWidth)
 
-def fillTableBody(df):
-    for index, row in df.iterrows():
-        table.insert("",tk.END,text="", value =list(row))
+    def getTableColumnWidt(self,col):
+        if col == "Titel"or col== "Bewertung":
+            return 220
+        elif col == "Art":
+            return 100
+        elif col == "Extras":
+            return 150
+        elif col == "Gäste" or col == "Bemerkung" :
+            return 70
+        elif col == "Link":
+            return 170
+        else:
+            return 50
 
-def buttonTableSortColumn(col, reverse):
+    def popupWindowTable(self,col):
+        global mousePosX, mousePosY
 
-    sortPrio(col, reverse)
-    tableHeaderChange()
-    sortColumn()
+        self.popupWindow  = tk.Tk()
+        self.popupWindow.title(col)
 
-    popupWindow.destroy()
+        setStyle(self.popupWindow)
 
-def sortPrio(col, reverse):
-    if len(sortierungsPrioList) == 0:
-        sortierungsPrioList.append([col , reverse, ""])
-    else:
-        for index, item in enumerate(sortierungsPrioList):
+        popupFrame = ttk.Frame(self.popupWindow)
+
+        buttonSortierungAZ = ttk.Button(popupFrame,
+                                text= "Sort A-Z",
+                                command= lambda: self.buttonTableSortColumn(col, False))
+        buttonSortierungAZ.pack()
+
+        buttonSortierungZA = ttk.Button(popupFrame,
+                                text= "Sort Z-A",
+                                command= lambda: self.buttonTableSortColumn(col, True))
+        buttonSortierungZA.pack()
+
+        buttonFilter = ttk.Button(popupFrame,
+                                text= "Filter",
+                                command= lambda: self.tabelFilterColumn(col))
+        buttonFilter.pack()
+
+        buttonReset = ttk.Button(popupFrame,
+                                text= "reset",
+                                command= lambda: self.buttonTableResetColumn(col))
+        buttonReset.pack()
+
+
+        popupFrame.pack()
+
+    def buttonTableSortColumn(self,col, reverse):
+
+        self.sortPrio(col, reverse)
+        self.tableHeaderChange()
+        self.sortColumn()
+
+        self.popupWindow.destroy()
+
+    def sortPrio(self,col, reverse):
+        if len(self.sortierungsPrioList) == 0:
+            self.sortierungsPrioList.append([col , reverse, ""])
+        else:
+            for index, item in enumerate(self.sortierungsPrioList):
+                if item[0] == col:
+                    self.sortierungsPrioList[index][1] = reverse
+                else:
+                    self.sortierungsPrioList.append([col , reverse, ""])
+
+    def tableHeaderChange(self):
+        for index, item in enumerate(self.sortierungsPrioList):
+            headerChange = item[0] + " " + str(index +1) + " " + self.getArrowForSort(item[1])
+            self.table.heading(item[0], text=headerChange)
+
+    def getArrowForSort(self,reverse):
+        pfeilHoch = html.unescape("&#x2191;")
+        pfeilRunter = html.unescape("&#x2193;")
+
+        if reverse:
+            return pfeilHoch
+        else:
+            return pfeilRunter
+
+    def sortColumn(self):
+        rowIDArr = self.table.get_children('')
+        colDataArr = []
+
+        #Daten von jeder Reihe mit den jeweiligen Spalten mit der ID speichern
+        for rowID in rowIDArr:
+            data = []
+            for col in self.sortierungsPrioList:
+                tableData = self.table.set(rowID, col[0]) #aus der Tabelle
+                if tableData.isdigit():
+                    tableData = int("".join([i for i in tableData if i.isdigit()]))#prüfen ob Zahlen
+                if col[1] == True:
+                    tableData = self.reversor(tableData) #für den Sort Key umgekehrte Reihnfolge
+                data.append(tableData)
+
+            data.append(rowID)
+            colDataArr.append(data)
+        #Datensortierung je nachdem wieviele Spalten zum Sortieren ausgewählt wurden
+        colDataArr.sort(key=lambda data: tuple(data[:-1]))
+
+        # re arrange items in sorted positions
+        for index, value in enumerate(colDataArr):
+            self.table.move(value[-1], '', index)
+
+    class reversor:
+        def __init__(self, obj):
+            self.obj = obj
+
+        def __eq__(self, other):
+            return other.obj == self.obj
+
+        def __lt__(self, other):
+            return other.obj < self.obj
+
+    def tabelFilterColumn(self,col):
+        print("in Arbeit")
+
+    def buttonTableResetColumn(self,col):
+        for item in self.sortierungsPrioList:
             if item[0] == col:
-                sortierungsPrioList[index][1] = reverse
-            else:
-                sortierungsPrioList.append([col , reverse, ""])
+                self.table.heading(col, text=col)
+                self.sortierungsPrioList.remove(item)
 
-def tableHeaderChange():
-    for index, item in enumerate(sortierungsPrioList):
-        headerChange = item[0] + " " + str(index +1) + " " + getArrowForSort(item[1])
-        table.heading(item[0], text=headerChange)
+        self.tableHeaderChange()
+        self.sortColumn()
 
-def getArrowForSort(reverse):
-    pfeilHoch = html.unescape("&#x2191;")
-    pfeilRunter = html.unescape("&#x2193;")
+        self.popupWindow.destroy()
 
-    if reverse:
-        return pfeilHoch
-    else:
-        return pfeilRunter
 
-def sortColumn():
-    rowIDArr = table.get_children('')
-    colDataArr = []
+    def fillTableBody(self,df):
+        for index, row in df.iterrows():
+            self.table.insert("",tk.END,text="", value =list(row))
 
-    #Daten von jeder Reihe mit den jeweiligen Spalten mit der ID speichern
-    for rowID in rowIDArr:
-        data = []
-        for col in sortierungsPrioList:
-            tableData = table.set(rowID, col[0]) #aus der Tabelle
-            if tableData.isdigit():
-                tableData = int("".join([i for i in tableData if i.isdigit()]))#prüfen ob Zahlen
-            if col[1] == True:
-                tableData = reversor(tableData) #für den Sort Key umgekehrte Reihnfolge
-            data.append(tableData)
+class PopupWindow:
+    def __init__(self, table, col):
+        self.popupWindow  = tk.Tk()
+        self.popupWindow.title(col)
 
-        data.append(rowID)
-        colDataArr.append(data)
-    #Datensortierung je nachdem wieviele Spalten zum Sortieren ausgewählt wurden
-    colDataArr.sort(key=lambda data: tuple(data[:-1]))
+        self.setStyle(popupWindow)
 
-    # re arrange items in sorted positions
-    for index, value in enumerate(colDataArr):
-        table.move(value[-1], '', index)
 
-class reversor:
-    def __init__(self, obj):
-        self.obj = obj
+        popupFrame = ttk.Frame(popupWindow)
 
-    def __eq__(self, other):
-        return other.obj == self.obj
+        buttonSortierungAZ = ttk.Button(popupFrame,
+                                text= "Sort A-Z",
+                                command= lambda: self.buttonTableSortColumn(col, False))
+        buttonSortierungAZ.pack()
 
-    def __lt__(self, other):
-        return other.obj < self.obj
+        buttonSortierungZA = ttk.Button(popupFrame,
+                                text= "Sort Z-A",
+                                command= lambda: self.buttonTableSortColumn(col, True))
+        buttonSortierungZA.pack()
 
-def tabelFilterColumn(col):
-    print("in Arbeit")
+        buttonFilter = ttk.Button(popupFrame,
+                                text= "Filter",
+                                command= lambda: tabelFilterColumn(col))
+        buttonFilter.pack()
 
-def buttonTableResetColumn(col):
-    for item in sortierungsPrioList:
-        if item[0] == col:
-            table.heading(col, text=col)
-            sortierungsPrioList.remove(item)
+        buttonReset = ttk.Button(popupFrame,
+                                text= "reset",
+                                command= lambda: buttonTableResetColumn(col))
+        buttonReset.pack()
 
-    tableHeaderChange()
-    sortColumn()
 
-    popupWindow.destroy()
+        popupFrame.pack()
+
+    def setStyle(self,window):
+        style = ThemedStyle(window)
+        style.set_theme("clearlooks")
+
+    def buttonTableSortColumn(self, col, reverse):
+
+        sortPrio(col, reverse)
+        tableHeaderChange()
+        sortColumn()
+
+        popupWindow.destroy()
+
+    def sortPrio(self, col, reverse):
+        if len(sortierungsPrioList) == 0:
+            sortierungsPrioList.append([col , reverse, ""])
+        else:
+            for index, item in enumerate(sortierungsPrioList):
+                if item[0] == col:
+                    sortierungsPrioList[index][1] = reverse
+                else:
+                    sortierungsPrioList.append([col , reverse, ""])
 
 
 def createTableExtraData(window, df):
