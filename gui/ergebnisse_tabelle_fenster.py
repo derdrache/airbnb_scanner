@@ -5,6 +5,7 @@ from ttkthemes import ThemedStyle
 import html
 import webbrowser
 
+#Sortierungsprio funktioniert nicht mehr, immer 1
 
 def ergebnissPage(df):
     global resultTable
