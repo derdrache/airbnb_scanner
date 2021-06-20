@@ -5,8 +5,6 @@ from ttkthemes import ThemedStyle
 import html
 import webbrowser
 
-#Sortierungsprio funktioniert nicht mehr, immer 1
-
 def ergebnissPage(df):
     global resultTable
 
@@ -82,8 +80,6 @@ class PopupWindow:
 
         self.setStyle()
 
-        self.sortierungsPrioList = []
-
         popupFrame = ttk.Frame(self.popupWindow)
 
         buttonSortierungAZ = ttk.Button(popupFrame,
@@ -122,17 +118,18 @@ class PopupWindow:
         self.popupWindow.destroy()
 
     def sortPrio(self, col, reverse):
-        if len(self.sortierungsPrioList) == 0:
-            self.sortierungsPrioList.append([col , reverse, ""])
+
+        if len(resultTable.sortierungsPrioList) == 0:
+            resultTable.sortierungsPrioList.append([col , reverse, ""])
         else:
-            for index, item in enumerate(self.sortierungsPrioList):
+            for index, item in enumerate(resultTable.sortierungsPrioList):
                 if item[0] == col:
-                    self.sortierungsPrioList[index][1] = reverse
+                    resultTable.sortierungsPrioList[index][1] = reverse
                 else:
-                    self.sortierungsPrioList.append([col , reverse, ""])
+                    resultTable.sortierungsPrioList.append([col , reverse, ""])
 
     def tableHeaderChange(self):
-        for index, item in enumerate(self.sortierungsPrioList):
+        for index, item in enumerate(resultTable.sortierungsPrioList):
             headerChange = item[0] + " " + str(index +1) + " " + self.getArrowForSort(item[1])
             resultTable.table.heading(item[0], text=headerChange)
 
@@ -152,7 +149,7 @@ class PopupWindow:
         #Daten von jeder Reihe mit den jeweiligen Spalten mit der ID speichern
         for rowID in rowIDArr:
             data = []
-            for col in self.sortierungsPrioList:
+            for col in resultTable.sortierungsPrioList:
                 tableData = resultTable.table.set(rowID, col[0]) #aus der Tabelle
                 if tableData.isdigit():
                     tableData = int("".join([i for i in tableData if i.isdigit()]))#prüfen ob Zahlen
@@ -183,10 +180,10 @@ class PopupWindow:
         print("in Arbeit")
 
     def buttonTableResetColumn(self,col):
-        for item in self.sortierungsPrioList:
+        for item in resultTable.sortierungsPrioList:
             if item[0] == col:
                 resultTable.table.heading(col, text=col)
-                self.sortierungsPrioList.remove(item)
+                resultTable.sortierungsPrioList.remove(item)
 
         self.tableHeaderChange()
         self.sortColumn()
