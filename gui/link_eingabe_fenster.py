@@ -7,7 +7,7 @@ import logic.airbnb_searcher as airbnb_searcher
 import gui.ergebnisse_tabelle_fenster as ergebnisseTabelleFenster
 
 
-def linkEingabePage():
+def createLinkEingabePage():
     global eingabeWindow
 
     eingabeWindow = tk.Tk()
@@ -15,10 +15,10 @@ def linkEingabePage():
     eingabeWindow.bind('<Return>', enterKey)
     setStyle(eingabeWindow)
 
-    countLinkRow(eingabeWindow)
-    createListBox(eingabeWindow)
-    inputRow(eingabeWindow)
-    sucheStartRow(eingabeWindow)
+    createLinkCountText(eingabeWindow)
+    createLinkListBox(eingabeWindow)
+    createLinkInput(eingabeWindow)
+    createSearchStart(eingabeWindow)
 
     eingabeWindow.mainloop()
 
@@ -33,7 +33,7 @@ def setStyle(window):
 
 
 
-def countLinkRow(window):
+def createLinkCountText(window):
     global countLinkText
     frame = ttk.Frame(window)
     label = ttk.Label(master=frame, text='Eingefügte Links: ')
@@ -44,7 +44,8 @@ def countLinkRow(window):
     labelUpdate.pack(side=tk.LEFT)
     frame.pack()
 
-def createListBox(window):
+
+def createLinkListBox(window):
     global linkBox
 
     frame = ttk.Frame(window)
@@ -52,7 +53,8 @@ def createListBox(window):
     linkBox.pack()
     frame.pack()
 
-def inputRow(window):
+
+def createLinkInput(window):
     global enterLinkInput
 
     frame = ttk.Frame(window)
@@ -66,20 +68,6 @@ def inputRow(window):
     buttonLinkAdd.pack(side=tk.LEFT, padx = 10)
     buttonLinkDelete.pack(side=tk.LEFT)
     frame.pack()
-
-def sucheStartRow(window):
-    frame = ttk.Frame(window)
-    buttonStart = ttk.Button(master=frame ,text = "Suchen", command= buttonStartFunction)
-    buttonStart.pack()
-    frame.pack()
-
-
-
-def updateCountLinkText():
-    number = len(linkBox.get(0,tk.END))
-    countLinkText.set(number)
-
-    eingabeWindow.update()
 
 def functionButtonAddLink():
     newLink = enterLinkInput.get()
@@ -101,7 +89,6 @@ def checkLink(link):
 def getLinkErrorMessage():
     messagebox.showinfo(title="Link Error", message="Der eingegebene Link entspricht nicht den Vorgaben")
 
-
 def functionButtonLinkDelete():
     deleteLink()
     updateCountLinkText()
@@ -110,6 +97,18 @@ def deleteLink():
     auswahlIndex = linkBox.curselection()[0]
     linkBox.delete(auswahlIndex)
 
+def updateCountLinkText():
+    number = len(linkBox.get(0,tk.END))
+    countLinkText.set(number)
+
+    eingabeWindow.update()
+
+
+def createSearchStart(window):
+    frame = ttk.Frame(window)
+    buttonStart = ttk.Button(master=frame ,text = "Suchen", command= buttonStartFunction)
+    buttonStart.pack()
+    frame.pack()
 
 def buttonStartFunction():
     startSearch()
@@ -119,7 +118,7 @@ def startSearch():
     linkList = linkBox.get(0,tk.END)
     searchResults = airbnb_searcher.airbnbSearch(linkList)
     if not searchResults.empty:
-        ergebnisseTabelleFenster.ergebnissPage(searchResults)
+        ergebnisseTabelleFenster.createErgebnissPage(searchResults)
     else:
         print("leer")
 

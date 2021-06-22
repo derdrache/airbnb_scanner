@@ -5,7 +5,7 @@ from ttkthemes import ThemedStyle
 import html
 import webbrowser
 
-def ergebnissPage(df):
+def createErgebnissPage(df):
     global resultTable
 
     tableWindow = tk.Toplevel()
@@ -32,14 +32,15 @@ class ResultTable:
     def __init__(self, root, df):
 
         self.sortierungsPrioList = []
+        self.df = df
 
-        columnList = list(df.columns)
-        self.table = ttk.Treeview(root, column=tuple(columnList))
+        self.columnList = list(df.columns)
+        self.table = ttk.Treeview(root, column=tuple(self.columnList))
         self.table["show"] = "headings"
         self.table.bind("<Double-1>", self.openRoomlinkInBrowser)
 
-        self.fillTableHead(columnList)
-        self.fillTableBody(df)
+        self.fillTableHead()
+        self.fillTableBody()
 
         self.table.pack(fill = "both" ,expand=True)
 
@@ -49,8 +50,8 @@ class ResultTable:
 
         webbrowser.open('{}'.format(urlLink))
 
-    def fillTableHead(self,columns):
-        for index, col in enumerate(columns):
+    def fillTableHead(self):
+        for index, col in enumerate(self.columnList):
             columnWidth = self.getTableColumnWidt(col)
             self.table.heading(col, text=col, anchor='w', command=lambda _col=col: PopupWindow(_col))
             self.table.column(col, anchor="w", width=columnWidth)
@@ -69,8 +70,8 @@ class ResultTable:
         else:
             return 50
 
-    def fillTableBody(self,df):
-        for index, row in df.iterrows():
+    def fillTableBody(self):
+        for index, row in self.df.iterrows():
             self.table.insert("",tk.END,text="", value =list(row))
 
 class PopupWindow:
