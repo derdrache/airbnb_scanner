@@ -7,6 +7,11 @@ import logic.airbnb_searcher as airbnb_searcher
 import gui.ergebnisse_tabelle_fenster as ergebnisseTabelleFenster
 
 
+def createErrorMessage(text):
+    messagebox.showinfo(title="Link Error", message=text)
+
+
+
 def createLinkEingabePage():
     global eingabeWindow
 
@@ -76,7 +81,7 @@ def functionButtonAddLink():
     if checkLink(newLink):
         linkBox.insert("end", newLink)
     else:
-        getLinkErrorMessage()
+        createErrorMessage("Der eingegebene Link entspricht nicht den Vorgaben")
 
     updateCountLinkText()
 
@@ -85,9 +90,6 @@ def checkLink(link):
     airbnbSuchzeichen = "/s/"
 
     return link != "" and airbnbSignatur in link and airbnbSuchzeichen in link
-
-def getLinkErrorMessage():
-    messagebox.showinfo(title="Link Error", message="Der eingegebene Link entspricht nicht den Vorgaben")
 
 def functionButtonLinkDelete():
     deleteLink()
@@ -116,11 +118,11 @@ def buttonStartFunction():
 
 def startSearch():
     linkList = linkBox.get(0,tk.END)
-    searchResults = airbnb_searcher.airbnbSearch(linkList)
+    searchResults = airbnb_searcher.searchAirbnb(linkList)
     if not searchResults.empty:
         ergebnisseTabelleFenster.createErgebnissPage(searchResults)
     else:
-        print("leer")
+        createErrorMessage("Die Suche hat keine Ergebnisse gefunden. Bitte versuch es mit anderen Links.")
 
 def resetEingabe():
     countLinkText.set("")
