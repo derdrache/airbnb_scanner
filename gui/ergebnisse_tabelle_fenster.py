@@ -5,6 +5,7 @@ from ttkthemes import ThemedStyle
 import html
 import webbrowser
 
+
 def createErgebnissPage(df):
     global resultTable
 
@@ -78,6 +79,65 @@ class ResultTable:
         for index, value in enumerate(sortPrioRowIDList):
             resultTable.table.move(value[-1], '', index)
 
+    def addSortnumberAndArrowToHeader(self):
+        for index, item in enumerate(self.sortierungsPrioList):
+            headerChange = item[0] + " " + str(index +1) + " " + self.getSortArrow(item[1])
+            self.table.heading(item[0], text=headerChange)
+
+    def getSortArrow(self,reverse):
+        pfeilHoch = html.unescape("&#x2191;")
+        pfeilRunter = html.unescape("&#x2193;")
+
+        if reverse:
+            return pfeilHoch
+        else:
+            return pfeilRunter
+
+    def resetHeader(self, col):
+        self.table.heading(col, text=col)
+
+    def changeSortPrioList(self, col, reverse):
+        if len(self.sortierungsPrioList) == 0:
+            self.sortierungsPrioList.append([col , reverse])
+        else:
+            for index, item in enumerate(self.sortierungsPrioList):
+                if item[0] == col:
+                    self.sortierungsPrioList[index][1] = reverse
+                else:
+                    self.sortierungsPrioList.append([col , reverse])
+
+    def combineSortprioDataWithRowID(self):
+        tableRowList = self.table.get_children('')
+        combinedList = []
+
+        for rowID in tableRowList:
+            sortPrioRowID = []
+            columnTableData =[]
+
+            for sortPrio in self.sortierungsPrioList:
+                columnTableData = self.table.set(rowID, sortPrio[0])
+
+                if sortPrio[1] == True:
+                    columnTableData = Reversor(columnTableData) #für den Sort Key umgekehrte Reihnfolge
+
+                sortPrioRowID.append(columnTableData)
+
+            sortPrioRowID.append(rowID)
+
+            combinedList.append(sortPrioRowID)
+
+        return combinedList
+
+class Reversor:
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __eq__(self, other):
+        return other.obj == self.obj
+
+    def __lt__(self, other):
+        return other.obj < self.obj
+
 class PopupWindow:
     def __init__(self, col):
         self.col = col
@@ -108,12 +168,12 @@ class PopupWindow:
 
         buttonFilter = ttk.Button(popupFrame,
                                 text= "Filter",
-                                command= lambda: self.tabelFilterColumn(self.col))
+                                command= lambda: self.createTableFilter(self.col))
         buttonFilter.pack()
 
         buttonReset = ttk.Button(popupFrame,
                                 text= "reset",
-                                command= lambda: self.sortFilterReset(self.col))
+                                command= lambda: self.resetSortFilter(self.col))
         buttonReset.pack()
 
 
@@ -121,99 +181,30 @@ class PopupWindow:
 
     def sortTable(self, col, reverse):
 
-        self.changeTableSortPrioList(col, reverse)
-        self.changeTableHeader()
-        self.sortColumn()
+        resultTable.changeSortPrioList(col, reverse)
+        resultTable.addSortnumberAndArrowToHeader()
+        self.createTableSort()
 
         self.popupWindow.destroy()
 
-    def changeTableSortPrioList(self, col, reverse):
-
-        if len(resultTable.sortierungsPrioList) == 0:
-            resultTable.sortierungsPrioList.append([col , reverse])
-        else:
-            for index, item in enumerate(resultTable.sortierungsPrioList):
-                if item[0] == col:
-                    resultTable.sortierungsPrioList[index][1] = reverse
-                else:
-                    resultTable.sortierungsPrioList.append([col , reverse])
-
-    def changeTableHeader(self):
-        for index, item in enumerate(resultTable.sortierungsPrioList):
-            headerChange = item[0] + " " + str(index +1) + " " + self.getSortArrow(item[1])
-            resultTable.table.heading(item[0], text=headerChange)
-
-    def getSortArrow(self,reverse):
-        pfeilHoch = html.unescape("&#x2191;")
-        pfeilRunter = html.unescape("&#x2193;")
-
-        if reverse:
-            return pfeilHoch
-        else:
-            return pfeilRunter
-    #sortColumn clean code
-    def sortColumn(self):
-        sortPrioRowIDList = self.combineSortprioRowID()
+    def createTableSort(self):
+        sortPrioRowIDList = resultTable.combineSortprioDataWithRowID()
 
         sortPrioRowIDList.sort(key=lambda data: tuple(data[:-1]))
 
         resultTable.changeSort(sortPrioRowIDList)
 
-    def combineSortprioRowID(self):
-        tableRowList = resultTable.table.get_children('')
-        combinedList = []
-
-        for rowID in tableRowList:
-            columnTableData = resultTable.table.set(rowID, sortPrio[0])
-            sortPrioRowID = []
-
-            for sortPrio in resultTable.sortierungsPrioList:
-                if sortPrio[1] == True:
-                    columnTableData = self.reversor(columnTableData) #für den Sort Key umgekehrte Reihnfolge
-
-
-            sortPrioRowID.append(columnTableData)
-            sortPrioRowID.append(rowID)
-
-            combinedList.append(sortPrioRowID)
-
-        return combinedList
-
-    class reversor:
-        def __init__(self, obj):
-            self.obj = obj
-
-        def __eq__(self, other):
-            return other.obj == self.obj
-
-        def __lt__(self, other):
-            return other.obj < self.obj
-
-    def sortColumnTest(self, col):
-        l = [(resultTable.table.set(k, col), k) for k in resultTable.table.get_children('')]
-        l.sort(reverse=reverse)
-
-        # rearrange items in sorted positions
-        for index, (val, k) in enumerate(l):
-            resultTable.table.move(k, '', index)
-        # reverse sort next time
-        #tv.heading(col, command=lambda: \
-        #           treeview_sort_column(tv, col, not reverse))
-
-    #reversor clean code
-
-
-    def tabelFilterColumn(self,col):
+    def createTableFilter(self,col):
         print("in Arbeit")
 
-    def sortFilterReset(self,col):
+    def resetSortFilter(self,col):
         for item in resultTable.sortierungsPrioList:
             if item[0] == col:
-                resultTable.table.heading(col, text=col)
+                resultTable.resetHeader(col)
                 resultTable.sortierungsPrioList.remove(item)
 
-        self.changeTableHeader()
-        self.sortColumn()
+        resultTable.addSortnumberAndArrowToHeader()
+        self.createTableSort()
 
         self.popupWindow.destroy()
 
