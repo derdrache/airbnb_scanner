@@ -6,11 +6,9 @@ from ttkthemes import ThemedStyle
 import logic.airbnb_searcher as airbnb_searcher
 import gui.ergebnisse_tabelle_fenster as ergebnisseTabelleFenster
 
-
-def createErrorMessage(text):
-    messagebox.showinfo(title="Link Error", message=text)
-
-
+font = "helevetica"
+fontSize = 18
+paddings = {'padx': 5, 'pady': 5}
 
 def createLinkEingabePage():
     global eingabeWindow
@@ -20,23 +18,35 @@ def createLinkEingabePage():
     eingabeWindow.bind('<Return>', enterKey)
     setStyle(eingabeWindow)
 
-    createLinkCountText(eingabeWindow)
-    createLinkListBox(eingabeWindow)
-    createLinkInput(eingabeWindow)
-    createSearchStart(eingabeWindow)
+    pageFrame = ttk.Frame(eingabeWindow, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+
+    createLinkCountText(pageFrame)
+    createLinkListBox(pageFrame)
+    createLinkInput(pageFrame)
+    createSearchStart(pageFrame)
+
+    pageFrame.pack(pady = 20)
 
     eingabeWindow.mainloop()
 
+def createErrorMessage(text):
+    messagebox.showinfo(title="Link Error", message=text)
 
 def enterKey(event):
     if enterLinkInput.get() != "":
         functionButtonAddLink()
 
 def setStyle(window):
+    backgroundColor = "#856ff8"
+    window.configure(bg=backgroundColor)
+
     style = ThemedStyle(window)
     style.set_theme("clearlooks")
 
-
+    style.configure('TFrame', background=backgroundColor)
+    style.configure('TLabel', background=backgroundColor, font=(font, fontSize))
+    style.configure('TButton', background=backgroundColor,font=(font, fontSize))
+    style.map('TButton', background=[('active',backgroundColor)])
 
 def createLinkCountText(window):
     global countLinkText
@@ -47,24 +57,22 @@ def createLinkCountText(window):
 
     label.pack(side=tk.LEFT)
     labelUpdate.pack(side=tk.LEFT)
-    frame.pack()
-
+    frame.pack(pady = 10)
 
 def createLinkListBox(window):
     global linkBox
 
     frame = ttk.Frame(window)
-    linkBox = tk.Listbox(master=frame, selectmode='browse', width=100)
+    linkBox = tk.Listbox(master=frame, selectmode='browse', width=110, height = 6)
     linkBox.pack()
-    frame.pack()
-
+    frame.pack(pady = 10)
 
 def createLinkInput(window):
     global enterLinkInput
 
     frame = ttk.Frame(window)
     enterLinkLabel = ttk.Label(master=frame, text="Hier den Link einfügen: ")
-    enterLinkInput = ttk.Entry(master=frame)
+    enterLinkInput = ttk.Entry(master=frame,font=(font, fontSize))
     buttonLinkAdd = ttk.Button(master=frame,text= "+", command=functionButtonAddLink)
     buttonLinkDelete = ttk.Button(master = frame,text= "-", command=functionButtonLinkDelete)
 
@@ -72,7 +80,7 @@ def createLinkInput(window):
     enterLinkInput.pack(side=tk.LEFT, padx = 10)
     buttonLinkAdd.pack(side=tk.LEFT, padx = 10)
     buttonLinkDelete.pack(side=tk.LEFT)
-    frame.pack()
+    frame.pack(pady = 10)
 
 def functionButtonAddLink():
     newLink = enterLinkInput.get()
@@ -105,12 +113,11 @@ def updateCountLinkText():
 
     eingabeWindow.update()
 
-
 def createSearchStart(window):
     frame = ttk.Frame(window)
     buttonStart = ttk.Button(master=frame ,text = "Suchen", command= buttonStartFunction)
     buttonStart.pack()
-    frame.pack()
+    frame.pack(pady = 10)
 
 def buttonStartFunction():
     startSearch()
@@ -122,7 +129,7 @@ def startSearch():
     if not searchResults.empty:
         ergebnisseTabelleFenster.createErgebnissPage(searchResults)
     else:
-        createErrorMessage("Die Suche hat keine Ergebnisse gefunden. Bitte versuch es mit anderen Links.")
+        createErrorMessage("Die Suche hat keine Ergebnisse gefunden. Bitte versuch es mit einem anderen Link oder prüfe deine Internetverbindung")
 
 def resetEingabe():
     countLinkText.set("")
