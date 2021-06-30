@@ -44,7 +44,7 @@ class Room:
 
 		if priceOld == "":
 			priceOld = price
-		print(priceOld)
+		#print(priceOld)
 		return round(100 - (int(price) / int(priceOld) *100))
 
 	def getRoomRating(self):

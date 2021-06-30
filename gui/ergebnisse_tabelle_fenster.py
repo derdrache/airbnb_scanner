@@ -13,9 +13,16 @@ def createErgebnissPage(df):
     tableWindow.title("Airbnb Ergebnisse")
     tableWindow.bind("<Motion>", callback)
     setStyle(tableWindow)
+    fullScreen(tableWindow)
 
     resultTable = ResultTable(tableWindow, df)
     createTableExtraData(tableWindow, df)
+
+def fullScreen(root):
+    fullWidth = root.winfo_screenwidth()
+    fullHeight = root.winfo_screenheight()
+
+    root.geometry("{0}x{1}+0+0".format(fullWidth, fullHeight))
 
 def callback(event):
     global mousePosX, mousePosY
@@ -117,8 +124,12 @@ class ResultTable:
             for sortPrio in self.sortierungsPrioList:
                 columnTableData = self.table.set(rowID, sortPrio[0])
 
+                if columnTableData.isnumeric():
+                    columnTableData = int(columnTableData)
+
                 if sortPrio[1] == True:
                     columnTableData = Reversor(columnTableData) #für den Sort Key umgekehrte Reihnfolge
+
 
                 sortPrioRowID.append(columnTableData)
 
