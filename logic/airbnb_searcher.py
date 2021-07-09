@@ -8,7 +8,10 @@ class Room:
 		self.listing = roomListing
 
 	def getRoomName(self):
-		return self.listing.find("meta")["content"]
+		try:
+			return self.listing.find("meta")["content"]
+		except:
+			return ""
 
 	def getTypeOfRoom(self):
 		text = self.listing.find("div", {"class": "_1tanv1h"}).text
@@ -44,7 +47,7 @@ class Room:
 
 		if priceOld == "":
 			priceOld = price
-		#print(priceOld)
+
 		return round(100 - (int(price) / int(priceOld) *100))
 
 	def getRoomRating(self):
@@ -147,12 +150,13 @@ def getDataframeFromRoomData(rooms):
 	lables = ["Titel", "Art", "Bewertung","Preis", "Preis vorher", "Rabatt", "Bemerkung", "Extras", "Gäste", "Link"]
 
 	for room in rooms:
-		arr = [room.getRoomName(), room.getTypeOfRoom(), room.getRoomRating(),
-			   room.getRoomPrice(),room.getRoomOldPrice() ,room.calculateRabatt(),
-			   room.getRoomComment(),room.getRoomExtras(), room.getRoomPersonNumber(),
-			   room.getRoomLink()]
+		if room.getRoomName() != "":
+			arr = [room.getRoomName(), room.getTypeOfRoom(), room.getRoomRating(),
+				   room.getRoomPrice(),room.getRoomOldPrice() ,room.calculateRabatt(),
+				   room.getRoomComment(),room.getRoomExtras(), room.getRoomPersonNumber(),
+				   room.getRoomLink()]
 
-		roomData.append(arr)
+			roomData.append(arr)
 
 	roomData = deleteDuplicatRooms(roomData)
 	df = pd.DataFrame(roomData, columns=lables)
